@@ -1,5 +1,8 @@
-import random, copy, math
+import copy
+import math
+import random
 
+##### BALLOT CLASS
 class Ballot:
     def __init__(self, preferenceOrdering):
         self.preferences = preferenceOrdering
@@ -15,6 +18,7 @@ class Ballot:
     def __repr__(self):
         return "["+" ".join(self.preferences)+"]"
 
+##### HELPER FUNCTIONS
 def returnShuffledCopy(l):
     lCopy = copy.copy(l)
     random.shuffle(lCopy)
@@ -23,7 +27,41 @@ def returnShuffledCopy(l):
 def generateRandomVoteSet(candidateSet, numberOfVoters):
     return [Ballot(returnShuffledCopy(candidateSet)) for i in range(numberOfVoters)]
 
+def generateCondorcetWinnerHeatmap(maxCandidates, maxVoters):
+    print("Number of Voters", end="\t")
+    for voterCount in range(10, maxVoters + 1, 10):
+        print(voterCount, end="\t")
+    for candidateCount in range(2, maxCandidates+1):
+        print()
+        print(candidateCount, end="\t")
+        for voterCount in range(10, maxVoters+1, 10):
+            winnersFound = 0
+            for i in range(1000):
+                if condorcetVote(generateRandomVoteSet(generateGenericCandidates(candidateCount), voterCount)):
+                    winnersFound+=1
+            print(winnersFound/1000,end="\t")
 
+def compareTwoCandidates(voteSet, candidateA, candidateB):
+    countForMajority = math.floor(len(voteSet)/2+1)
+    candidateAWins, candidateBWins = 0, 0
+    for ballot in voteSet:
+        winner = ballot.getPreferredCandidate(candidateA, candidateB)
+        if winner == candidateA:
+            candidateAWins+=1
+            if candidateAWins >= countForMajority: return {candidateA}
+        elif winner == candidateB:
+            candidateBWins+=1
+            if candidateBWins >= countForMajority: return {candidateB}
+    return {candidateA, candidateB}
+
+def getCandidatesInElection(voteSet):
+    return [voteSet[0].getPreference(i) for i in range(voteSet[0].getBallotLength())]
+
+def generateGenericCandidates(numberOfCandidates):
+    return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'][:numberOfCandidates]
+
+##### VOTING SYSTEMS
 def pluralityVote(voteSet):
     scores = {}
     for ballot in voteSet:
@@ -65,37 +103,10 @@ def sequentialPairwiseVote(voteSet, agenda = None):
     if not agenda: agenda = getCandidatesInElection(voteSet)
     pass
 
-def compareTwoCandidates(voteSet, candidateA, candidateB):
-    countForMajority = math.floor(len(voteSet)/2+1)
-    candidateAWins, candidateBWins = 0, 0
-    for ballot in voteSet:
-        winner = ballot.getPreferredCandidate(candidateA, candidateB)
-        if winner == candidateA:
-            candidateAWins+=1
-            if candidateAWins >= countForMajority: return {candidateA}
-        elif winner == candidateB:
-            candidateBWins+=1
-            if candidateBWins >= countForMajority: return {candidateB}
-    return {candidateA, candidateB}
-
-def getCandidatesInElection(voteSet):
-    return [voteSet[0].getPreference(i) for i in range(voteSet[0].getBallotLength())]
-
-def generateGenericCandidates(numberOfCandidates):
-    return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'][:numberOfCandidates]
-
+##### EXECUTION AREA
 voteSet = generateRandomVoteSet(generateGenericCandidates(4), 10)
 print(voteSet)
 print(pluralityVote(voteSet))
 print(bordaCountVote(voteSet))
 print(condorcetVote(voteSet))
-
-for candidateCount in range(2, 20):
-    print(candidateCount, end="\t")
-    for voterCount in range(10, 200, 10):
-        winnersFound = 0
-        for i in range(1000):
-            if condorcetVote(generateRandomVoteSet(generateGenericCandidates(candidateCount), voterCount)):
-                winnersFound+=1
-        print(winnersFound/1000,end="\t")
-    print()
+generateCondorcetWinnerHeatmap(20,200)
