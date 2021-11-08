@@ -106,7 +106,7 @@ def sequentialPairwiseVote(voteSet, agenda = None):
 ##### EXECUTION AREA
 voteSet = generateRandomVoteSet(generateGenericCandidates(4), 10)
 print(voteSet)
-print(pluralityVote(voteSet))
-print(bordaCountVote(voteSet))
-print(condorcetVote(voteSet))
-generateCondorcetWinnerHeatmap(20,200)
+#print(pluralityVote(voteSet))
+#print(bordaCountVote(voteSet))
+#print(condorcetVote(voteSet))
+#generateCondorcetWinnerHeatmap(20,70)
