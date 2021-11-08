@@ -1,16 +1,39 @@
-# This is a sample Python script.
+import random, copy
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+class Ballot:
+    def __init__(self, preferenceOrdering):
+        self.preferences = preferenceOrdering
+    def getPreference(self, index):
+        return self.preferences[index]
+    def getBallotLength(self):
+        return len(self.preferences)
+    def __repr__(self):
+        return "["+" ".join(self.preferences)+"]"
+
+def returnShuffledCopy(l):
+    lCopy = copy.copy(l)
+    random.shuffle(lCopy)
+    return lCopy
+
+def generateRandomVoteSet(candidateSet, numberOfVoters):
+    return [Ballot(returnShuffledCopy(candidateSet)) for i in range(numberOfVoters)]
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+def pluralityVote(voteSet):
+    scores = {}
+    for ballot in voteSet:
+        firstPlaceChoice = ballot.getPreference(0)
+        if firstPlaceChoice not in scores: scores[firstPlaceChoice] = 1
+        else: scores[firstPlaceChoice] += 1
+    highestScore = max(scores.values())
+    return {candidate for candidate in scores if scores[candidate] == highestScore}
 
+def hareVote(voteSet):
+    pass
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+def bordaCountVote(voteSet):
+    pass
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+voteSet = generateRandomVoteSet(["A", "B", "C"], 6)
+print(voteSet)
+print(pluralityVote(voteSet))
