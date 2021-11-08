@@ -19,13 +19,13 @@ class Ballot:
         return "["+" ".join(self.preferences)+"]"
 
 ##### HELPER FUNCTIONS
-def returnShuffledCopy(l):
+def returnShuffledCopyOfLList(l):
     lCopy = copy.copy(l)
     random.shuffle(lCopy)
     return lCopy
 
 def generateRandomVoteSet(candidateSet, numberOfVoters):
-    return [Ballot(returnShuffledCopy(candidateSet)) for i in range(numberOfVoters)]
+    return [Ballot(returnShuffledCopyOfLList(candidateSet)) for i in range(numberOfVoters)]
 
 def generateCondorcetWinnerHeatmap(maxCandidates, maxVoters):
     print("Number of Voters", end="\t")
