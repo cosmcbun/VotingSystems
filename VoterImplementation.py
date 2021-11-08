@@ -32,8 +32,14 @@ def hareVote(voteSet):
     pass
 
 def bordaCountVote(voteSet):
-    pass
+    scores = {voteSet[0].getPreference(i):0 for i in range(voteSet[0].getBallotLength())}
+    for ballot in voteSet:
+        for ballotIndex in range(ballot.getBallotLength()):
+            scores[ballot.getPreference(ballotIndex)] += ballot.getBallotLength() - ballotIndex
+    highestScore = max(scores.values())
+    return {candidate for candidate in scores if scores[candidate] == highestScore}
 
 voteSet = generateRandomVoteSet(["A", "B", "C"], 10)
 print(voteSet)
 print(pluralityVote(voteSet))
+print(bordaCountVote(voteSet))
