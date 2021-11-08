@@ -34,6 +34,6 @@ def hareVote(voteSet):
 def bordaCountVote(voteSet):
     pass
 
-voteSet = generateRandomVoteSet(["A", "B", "C"], 6)
+voteSet = generateRandomVoteSet(["A", "B", "C"], 10)
 print(voteSet)
 print(pluralityVote(voteSet))
