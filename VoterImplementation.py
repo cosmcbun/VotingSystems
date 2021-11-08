@@ -1,4 +1,4 @@
-import random, copy
+import random, copy, math
 
 class Ballot:
     def __init__(self, preferenceOrdering):
@@ -7,6 +7,11 @@ class Ballot:
         return self.preferences[index]
     def getBallotLength(self):
         return len(self.preferences)
+    def getCandidatePlacement(self, candidate):
+        return self.preferences.index(candidate)
+    def getPreferredCandidate(self, candidateA, candidateB):
+        if self.preferences.index(candidateA) < self.preferences.index(candidateB): return candidateA
+        else: return candidateB
     def __repr__(self):
         return "["+" ".join(self.preferences)+"]"
 
@@ -32,14 +37,65 @@ def hareVote(voteSet):
     pass
 
 def bordaCountVote(voteSet):
-    scores = {voteSet[0].getPreference(i):0 for i in range(voteSet[0].getBallotLength())}
+    scores = {candidate:0 for candidate in getCandidatesInElection(voteSet)}
     for ballot in voteSet:
         for ballotIndex in range(ballot.getBallotLength()):
             scores[ballot.getPreference(ballotIndex)] += ballot.getBallotLength() - ballotIndex
     highestScore = max(scores.values())
     return {candidate for candidate in scores if scores[candidate] == highestScore}
 
-voteSet = generateRandomVoteSet(["A", "B", "C"], 10)
+def condorcetVote(voteSet):
+    eligibleWinners = getCandidatesInElection(voteSet)
+    candidatesToBeat = {candidate:eligibleWinners[:] for candidate in eligibleWinners}
+    for candidate in candidatesToBeat:
+        candidatesToBeat[candidate].remove(candidate)
+    while eligibleWinners and [] not in candidatesToBeat.values():
+        firstCompetitor = eligibleWinners[0]
+        secondCompetitor = candidatesToBeat[firstCompetitor][0]
+        winner = compareTwoCandidates(voteSet, firstCompetitor, secondCompetitor)
+        if firstCompetitor in winner:
+            if secondCompetitor in eligibleWinners: eligibleWinners.remove(secondCompetitor)
+            del candidatesToBeat[firstCompetitor][0]
+        if secondCompetitor in winner: #If there's a tie, both of these can be true
+            del eligibleWinners[0]
+            candidatesToBeat[secondCompetitor].remove(firstCompetitor)
+    return set(eligibleWinners)
+
+def sequentialPairwiseVote(voteSet, agenda = None):
+    if not agenda: agenda = getCandidatesInElection(voteSet)
+    pass
+
+def compareTwoCandidates(voteSet, candidateA, candidateB):
+    countForMajority = math.floor(len(voteSet)/2+1)
+    candidateAWins, candidateBWins = 0, 0
+    for ballot in voteSet:
+        winner = ballot.getPreferredCandidate(candidateA, candidateB)
+        if winner == candidateA:
+            candidateAWins+=1
+            if candidateAWins >= countForMajority: return {candidateA}
+        elif winner == candidateB:
+            candidateBWins+=1
+            if candidateBWins >= countForMajority: return {candidateB}
+    return {candidateA, candidateB}
+
+def getCandidatesInElection(voteSet):
+    return [voteSet[0].getPreference(i) for i in range(voteSet[0].getBallotLength())]
+
+def generateGenericCandidates(numberOfCandidates):
+    return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'][:numberOfCandidates]
+
+voteSet = generateRandomVoteSet(generateGenericCandidates(4), 10)
 print(voteSet)
 print(pluralityVote(voteSet))
 print(bordaCountVote(voteSet))
+print(condorcetVote(voteSet))
+
+for candidateCount in range(2, 20):
+    print(candidateCount, end="\t")
+    for voterCount in range(10, 200, 10):
+        winnersFound = 0
+        for i in range(1000):
+            if condorcetVote(generateRandomVoteSet(generateGenericCandidates(candidateCount), voterCount)):
+                winnersFound+=1
+        print(winnersFound/1000,end="\t")
+    print()
