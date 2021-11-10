@@ -15,10 +15,8 @@ class Ballot:
     def getPreferredCandidate(self, candidateA, candidateB):
         if self.preferences.index(candidateA) < self.preferences.index(candidateB): return candidateA
         else: return candidateB
-    def getCopyWithoutCandidate(self, candidate):
-        newPreferenceOrdering = self.preferences
-        newPreferenceOrdering.remove(candidate)
-        return Ballot(newPreferenceOrdering)
+    def removeCandidate(self, candidate):
+        self.preferences.remove(candidate)
     def __repr__(self):
         return "["+" ".join(self.preferences)+"]"
 
@@ -58,42 +56,62 @@ def compareTwoCandidates(voteSet, candidateA, candidateB):
             if candidateBWins >= countForMajority: return {candidateB}
     return {candidateA, candidateB}
 
-def getNumberOfCandidatesInElection(voteSet):
+def getListOfCandidatesInElection(voteSet):
     return [voteSet[0].getPreference(i) for i in range(voteSet[0].getBallotLength())]
 
 def generateGenericCandidates(numberOfCandidates):
     return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
             'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'][:numberOfCandidates]
 
-def getCopyOfElectionWithoutCandidate(voteSet, candidate):
-    return [ballot.getCopyWithoutCandidate(candidate) for ballot in voteSet]
+def removeCandidateFromElection(voteSet, candidate):
+    for ballot in voteSet:
+        ballot.removeCandidate(candidate)
+    return voteSet
 
 ##### VOTING SYSTEMS
 def pluralityVote(voteSet):
-    scores = {candidate:0 for candidate in getNumberOfCandidatesInElection(voteSet)}
+    scores = {candidate:0 for candidate in getListOfCandidatesInElection(voteSet)}
     for ballot in voteSet:
         scores[ballot.getPreference(0)] += 1
     highestScore = max(scores.values())
     return {candidate for candidate in scores if scores[candidate] == highestScore}
 
 def antipluralityVote(voteSet):
-    scores = {}
+    scores = {candidate:0 for candidate in getListOfCandidatesInElection(voteSet)}
     for ballot in voteSet:
         scores[ballot.getPreference(ballot.getBallotLength()-1)] += 1
     lowestScore = min(scores.values())
     return {candidate for candidate in scores if scores[candidate] == lowestScore}
 
 def hareVote(voteSet):
-    if getNumberOfCandidatesInElection(voteSet) == 1:
-        return set(voteSet[0].getCandidatePlacement(0))
+    copiedVoteSet = copy.deepcopy(voteSet)
+    return hareVoteHelper(copiedVoteSet)
+
+def hareVoteHelper(voteSet):
+    if voteSet[0].getBallotLength() == 1:
+        return set(voteSet[0].getPreference(0))
     else:
-        pass
+        scores = {candidate: 0 for candidate in getListOfCandidatesInElection(voteSet)}
+        for ballot in voteSet:
+            scores[ballot.getPreference(0)] += 1
+
+        highestScore = max(scores.values())
+        if highestScore > len(voteSet)/2:
+            for candidate in scores:
+                if scores[candidate] == highestScore: return set(candidate)
+
+        lowestScore = min(scores.values())
+        for candidate in scores:
+            if scores[candidate] == lowestScore:
+                removeCandidateFromElection(voteSet, candidate)
+        if voteSet[0].getBallotLength() == 0: return set(scores.keys())
+        else: return hareVoteHelper(voteSet)
 
 def coombsVote(voteSet): #hare vote but you eliminate the option with the most last place votes
     pass
 
 def bordaCountVote(voteSet):
-    scores = {candidate:0 for candidate in getNumberOfCandidatesInElection(voteSet)}
+    scores = {candidate:0 for candidate in getListOfCandidatesInElection(voteSet)}
     for ballot in voteSet:
         for ballotIndex in range(ballot.getBallotLength()):
             scores[ballot.getPreference(ballotIndex)] += ballot.getBallotLength() - ballotIndex
@@ -101,7 +119,7 @@ def bordaCountVote(voteSet):
     return {candidate for candidate in scores if scores[candidate] == highestScore}
 
 def condorcetVote(voteSet):
-    eligibleWinners = getNumberOfCandidatesInElection(voteSet)
+    eligibleWinners = getListOfCandidatesInElection(voteSet)
     candidatesToBeat = {candidate:eligibleWinners[:] for candidate in eligibleWinners}
     for candidate in candidatesToBeat:
         candidatesToBeat[candidate].remove(candidate)
@@ -118,7 +136,7 @@ def condorcetVote(voteSet):
     return set(eligibleWinners)
 
 def sequentialPairwiseVote(voteSet, agenda = None):
-    if not agenda: agenda = getNumberOfCandidatesInElection(voteSet)
+    if not agenda: agenda = getListOfCandidatesInElection(voteSet)
     pass
 
 def dictatorshipVote(voteSet, dictatorIndex = 0):
@@ -132,6 +150,7 @@ voteSet = generateRandomVoteSet(generateGenericCandidates(4), 10)
 print(voteSet)
 print(pluralityVote(voteSet))
 print(antipluralityVote(voteSet))
+print(hareVote(voteSet))
 #print(bordaCountVote(voteSet))
 #print(condorcetVote(voteSet))
 #generateCondorcetWinnerHeatmap(20,70)
