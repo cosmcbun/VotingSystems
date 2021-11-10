@@ -132,6 +132,24 @@ def bordaCountVote(voteSet):
     highestScore = max(scores.values())
     return {candidate for candidate in scores if scores[candidate] == highestScore}
 
+def nansonVote(voteSet):
+    copiedVoteSet = copy.deepcopy(voteSet)
+    return nansonVoteHelper(copiedVoteSet)
+def nansonVoteHelper(voteSet):
+    if voteSet[0].getBallotLength() == 1:
+        return set(voteSet[0].getPreference(0))
+    else:
+        scores = {candidate: 0 for candidate in getListOfCandidatesInElection(voteSet)}
+        for ballot in voteSet:
+            for ballotIndex in range(ballot.getBallotLength()):
+                scores[ballot.getPreference(ballotIndex)] += ballot.getBallotLength() - ballotIndex
+        averageScore = mean(scores.values())
+        if set(scores.values()) == {averageScore}: return set(scores.keys())
+        for candidate in scores:
+            if scores[candidate] <= averageScore:
+                removeCandidateFromElection(voteSet, candidate)
+        else: return nansonVoteHelper(voteSet)
+
 def condorcetVote(voteSet):
     eligibleWinners = getListOfCandidatesInElection(voteSet)
     candidatesToBeat = {candidate:eligibleWinners[:] for candidate in eligibleWinners}
@@ -167,24 +185,6 @@ def sequentialPairwiseVote(voteSet, agenda = None, tiebreaker = pluralityVote):
 def dictatorshipVote(voteSet, dictatorIndex = 0):
     return set(voteSet[dictatorIndex].getPreference(0))
 
-def nansonVote(voteSet):
-    copiedVoteSet = copy.deepcopy(voteSet)
-    return nansonVoteHelper(copiedVoteSet)
-def nansonVoteHelper(voteSet):
-    if voteSet[0].getBallotLength() == 1:
-        return set(voteSet[0].getPreference(0))
-    else:
-        scores = {candidate: 0 for candidate in getListOfCandidatesInElection(voteSet)}
-        for ballot in voteSet:
-            for ballotIndex in range(ballot.getBallotLength()):
-                scores[ballot.getPreference(ballotIndex)] += ballot.getBallotLength() - ballotIndex
-        averageScore = mean(scores.values())
-        if set(scores.values()) == {averageScore}: return set(scores.keys())
-        for candidate in scores:
-            if scores[candidate] <= averageScore:
-                removeCandidateFromElection(voteSet, candidate)
-        else: return nansonVoteHelper(voteSet)
-
 def socialWellfareFunction(voteSet, votingSystem):
     winningSet = votingSystem(voteSet)
     if not winningSet:
@@ -202,10 +202,10 @@ def printAllVotingSystemResults(voteSet):
     print("Hare:", hareVote(voteSet))
     print("Coombs:", coombsVote(voteSet))
     print("Borda:", bordaCountVote(voteSet))
+    print("Nanson:", nansonVote(voteSet))
     print("Condorcet:", condorcetVote(voteSet))
     print("Pairwise:", sequentialPairwiseVote(voteSet))
     print("Dictator:", dictatorshipVote(voteSet))
-    print("Nanson:", nansonVote(voteSet))
 
 ##### EXECUTION AREA
 voteSet = generateRandomVoteSet(generateGenericCandidates(4), 10)
