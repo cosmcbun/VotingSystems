@@ -46,7 +46,7 @@ def generateCondorcetWinnerHeatmap(maxCandidates, maxVoters, iterationCount = 10
             for i in range(iterationCount):
                 if condorcetVote(generateRandomVoteSet(generateGenericCandidates(candidateCount), voterCount)):
                     winnersFound+=1
-            print(winnersFound/1000,end="\t")
+            print(winnersFound/iterationCount,end="\t")
 
 def compareTwoCandidates(voteSet, candidateA, candidateB):
     countForMajority = math.floor(len(voteSet)/2+1)
