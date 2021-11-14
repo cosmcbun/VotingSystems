@@ -1,6 +1,9 @@
 import copy
 import math
 import random
+import pandas as pd
+import urllib.request
+from itertools import chain
 
 ##### BALLOT CLASS
 class Ballot:
@@ -18,6 +21,30 @@ class Ballot:
     def __repr__(self):
         return "["+" ".join(self.preferences)+"]"
 
+##### DATAGRABBER FUNCTIONS
+def grabBallots():
+    elections = []
+    for electionNumber in chain(range(1, 36), range(48, 100)):
+        url = "https://rangevoting.org/TiData/A" + str(electionNumber) + ".HIL"
+        print(url)
+        file = urllib.request.urlopen(url)
+        fileLen = len(urllib.request.urlopen(url).readlines())
+        elections.append([])
+        listValue = electionNumber
+        if electionNumber > 35:
+            listValue = electionNumber - 12
+        for lineNum, line in enumerate(file):
+            decodedLine = line.decode("utf-8")
+            if lineNum == 0:
+                maxCandidate = decodedLine.split(" ")[1]
+                continue
+            elif lineNum == fileLen - 1 or lineNum == fileLen - 2 or lineNum == fileLen - 3:
+                continue
+            splitLine = decodedLine.split(" ")
+            ballotList = [int(candidate) for candidate in splitLine[1:-1]]
+            elections[listValue-1].append(Ballot(ballotList))
+    return(elections)
+
 ##### HELPER FUNCTIONS
 def returnShuffledCopyOfLList(l):
     lCopy = copy.copy(l)
@@ -31,15 +58,22 @@ def generateCondorcetWinnerHeatmap(maxCandidates, maxVoters):
     print("Number of Voters", end="\t")
     for voterCount in range(10, maxVoters + 1, 10):
         print(voterCount, end="\t")
+    outputArray = [[] for _ in range(2, maxCandidates+1)]
+    sampleSize = 100000
     for candidateCount in range(2, maxCandidates+1):
         print()
         print(candidateCount, end="\t")
         for voterCount in range(10, maxVoters+1, 10):
             winnersFound = 0
-            for i in range(1000):
+            for i in range(sampleSize):
                 if condorcetVote(generateRandomVoteSet(generateGenericCandidates(candidateCount), voterCount)):
                     winnersFound+=1
-            print(winnersFound/1000,end="\t")
+            outputArray[candidateCount-2].append(winnersFound/1000)
+            print(winnersFound/sampleSize,end="\t")
+    df = pd.DataFrame(outputArray)
+    df.columns =[col for col in range(10, maxVoters+1, 10)]
+    df.index = [row for row in range(2, maxCandidates+1)]
+    df.to_excel("LargeVoterImplementation.xlsx")
 
 def compareTwoCandidates(voteSet, candidateA, candidateB):
     countForMajority = math.floor(len(voteSet)/2+1)
@@ -109,4 +143,4 @@ print(voteSet)
 #print(pluralityVote(voteSet))
 #print(bordaCountVote(voteSet))
 #print(condorcetVote(voteSet))
-#generateCondorcetWinnerHeatmap(20,70)
+generateCondorcetWinnerHeatmap(20,70)
