@@ -77,7 +77,7 @@ def generateCondorcetWinnerHeatmap(maxCandidates, maxVoters, minCandidates = 2, 
         listOfLines.append(line)
     printForSpreadsheet(listOfLines)
 
-def generateVotingSystemWinnerHeatmap(listOfVoteSets, votingSystemsAndNames):
+def generateMultiVotingSystemComparisonHeatmap(listOfVoteSets, votingSystemsAndNames):
     allNames = list(votingSystemsAndNames.keys())
     scores = {name: {comparedName:0 for comparedName in allNames} for name in allNames}
     for voteSet in listOfVoteSets:
@@ -90,6 +90,9 @@ def generateVotingSystemWinnerHeatmap(listOfVoteSets, votingSystemsAndNames):
     listOfLines = [["How often does the left select a subset of the top?"]+allNames] + \
                   [[name]+[scores[name][comparedName]/countOfVoteSets for comparedName in allNames] for name in allNames]
     printForSpreadsheet(listOfLines)
+
+def generateTwoVotingSystemComparisonHeatmapOnFakeData(system1, system2, iterationCount):
+    pass
 
 def printForSpreadsheet(listOfLines):
     for line in listOfLines:
@@ -268,11 +271,10 @@ votingSystemsAndNames = {"Plurality": pluralityVote, "Antiplurality": antiplural
 
 ##### EXECUTION AREA
 voteSet = generateRandomVoteSet(generateGenericCandidates(4), 10)
-
 chairParadox = [Ballot(["A","B","C"]),Ballot(["B","C","A"]),Ballot(["C","A","B"])]
-#print(voteSet)
+print(voteSet)
 #printAllVotingSystemResults(voteSet)
 #print(sequentialPairwiseVote(voteSet))
 #print(socialWellfareFunction(voteSet,condorcetVote))
 #generateCondorcetWinnerHeatmap(7,30)
-generateVotingSystemWinnerHeatmap(generateManyElections(generateGenericCandidates(5), 100, 10000), votingSystemsAndNames)
+#generateVotingSystemWinnerHeatmap(generateManyElections(generateGenericCandidates(30), 1000, 10000), votingSystemsAndNames)
