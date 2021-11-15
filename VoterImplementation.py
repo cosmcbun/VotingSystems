@@ -8,19 +8,29 @@ from statistics import mean
 
 ##### BALLOT CLASS
 class Ballot:
-    def __init__(self, preferenceOrdering):
+    def __init__(self, preferenceOrdering, fullCandidatesList = None):
         self.preferences = preferenceOrdering
+        if type(fullCandidatesList) == list:
+            self.fullCandidatesList = fullCandidatesList
+            self.candidatesNotVotedFor = set(fullCandidatesList).difference(set(preferenceOrdering))
+        else:
+            self.fullCandidatesList = preferenceOrdering
+            self.candidatesNotVotedFor = set()
     def getPreference(self, index):
         return self.preferences[index]
-    def getBallotLength(self):
-        return len(self.preferences)
     def getCandidatePlacement(self, candidate):
-        return self.preferences.index(candidate)
+        if candidate in self.preferenceOrdering:
+            return self.preferences.index(candidate)
+        else: return None
+    def getNumberOfTotalCandidates(self):
+        return len(self.fullCandidatesList)
     def getPreferredCandidate(self, candidateA, candidateB):
         if self.preferences.index(candidateA) < self.preferences.index(candidateB): return candidateA
         else: return candidateB
     def removeCandidate(self, candidate):
         self.preferences.remove(candidate)
+    def getSetOfCandidatesNotVotedFor(self):
+        return self.candidatesNotVotedFor
     def __repr__(self):
         return "["+" ".join(self.preferences)+"]"
 
@@ -77,7 +87,7 @@ def generateCondorcetWinnerHeatmap(maxCandidates, maxVoters, minCandidates = 2, 
         listOfLines.append(line)
     printForSpreadsheet(listOfLines)
 
-def generateVotingSystemWinnerHeatmap(listOfVoteSets, votingSystemsAndNames):
+def generateMultiVotingSystemComparisonHeatmap(listOfVoteSets, votingSystemsAndNames):
     allNames = list(votingSystemsAndNames.keys())
     scores = {name: {comparedName:0 for comparedName in allNames} for name in allNames}
     for voteSet in listOfVoteSets:
@@ -89,6 +99,19 @@ def generateVotingSystemWinnerHeatmap(listOfVoteSets, votingSystemsAndNames):
     countOfVoteSets = len(listOfVoteSets)
     listOfLines = [["How often does the left select a subset of the top?"]+allNames] + \
                   [[name]+[scores[name][comparedName]/countOfVoteSets for comparedName in allNames] for name in allNames]
+    printForSpreadsheet(listOfLines)
+
+def generateTwoVotingSystemComparisonHeatmapOnFakeData(system1, system2, maxCandidates, maxVoters, minCandidates = 2, minVoters = 10, iterationCount = 1000):
+    listOfLines = [["Number of Voters"] + list(range(minVoters, maxVoters + 1, 10))]
+    for candidateCount in range(minCandidates, maxCandidates + 1):
+        line = [candidateCount]
+        for voterCount in range(minVoters, maxVoters + 1, 10):
+            winnersFound = 0
+            for i in range(iterationCount):
+                if condorcetVote(generateRandomVoteSet(generateGenericCandidates(candidateCount), voterCount)):
+                    winnersFound += 1
+            line.append(winnersFound / iterationCount)
+        listOfLines.append(line)
     printForSpreadsheet(listOfLines)
 
 def printForSpreadsheet(listOfLines):
@@ -111,7 +134,7 @@ def compareTwoCandidates(voteSet, candidateA, candidateB):
     return {candidateA, candidateB}
 
 def getListOfCandidatesInElection(voteSet):
-    return [voteSet[0].getPreference(i) for i in range(voteSet[0].getBallotLength())]
+    return [voteSet[0].getPreference(i) for i in range(voteSet[0].getNumberOfTotalCandidates())]
 
 def removeCandidateFromElection(voteSet, candidate):
     for ballot in voteSet:
@@ -144,7 +167,7 @@ def hareVote(voteSet):
     copiedVoteSet = copy.deepcopy(voteSet)
     return hareVoteHelper(copiedVoteSet)
 def hareVoteHelper(voteSet):
-    if voteSet[0].getBallotLength() == 1:
+    if voteSet[0].getNumberOfTotalCandidates() == 1:
         return set(voteSet[0].getPreference(0))
     else:
         scores = {candidate: 0 for candidate in getListOfCandidatesInElection(voteSet)}
@@ -161,24 +184,24 @@ def hareVoteHelper(voteSet):
         for candidate in scores:
             if scores[candidate] == lowestScore:
                 removeCandidateFromElection(voteSet, candidate)
-        if voteSet[0].getBallotLength() == 0: return set(scores.keys())
+        if voteSet[0].getNumberOfTotalCandidates() == 0: return set(scores.keys())
         else: return hareVoteHelper(voteSet)
 
 def coombsVote(voteSet): #Hare vote but you eliminate the option with the most last place votes
     copiedVoteSet = copy.deepcopy(voteSet)
     return coombsVoteHelper(copiedVoteSet)
 def coombsVoteHelper(voteSet):
-    if voteSet[0].getBallotLength() == 1:
+    if voteSet[0].getNumberOfTotalCandidates() == 1:
         return set(voteSet[0].getPreference(0))
     else:
         scores = {candidate: 0 for candidate in getListOfCandidatesInElection(voteSet)}
         for ballot in voteSet:
-            scores[ballot.getPreference(ballot.getBallotLength()-1)] += 1
+            scores[ballot.getPreference(ballot.getNumberOfTotalCandidates() - 1)] += 1
         highestScore = max(scores.values())
         for candidate in scores:
             if scores[candidate] == highestScore:
                 removeCandidateFromElection(voteSet, candidate)
-        if voteSet[0].getBallotLength() == 0: return set(scores.keys())
+        if voteSet[0].getNumberOfTotalCandidates() == 0: return set(scores.keys())
         else: return coombsVoteHelper(voteSet)
 
 def bordaCountVote(voteSet):
@@ -193,13 +216,13 @@ def nansonVote(voteSet):
     copiedVoteSet = copy.deepcopy(voteSet)
     return nansonVoteHelper(copiedVoteSet)
 def nansonVoteHelper(voteSet):
-    if voteSet[0].getBallotLength() == 1:
+    if voteSet[0].getNumberOfTotalCandidates() == 1:
         return set(voteSet[0].getPreference(0))
     else:
         scores = {candidate: 0 for candidate in getListOfCandidatesInElection(voteSet)}
         for ballot in voteSet:
-            for ballotIndex in range(ballot.getBallotLength()):
-                scores[ballot.getPreference(ballotIndex)] += ballot.getBallotLength() - ballotIndex
+            for ballotIndex in range(ballot.getNumberOfTotalCandidates()):
+                scores[ballot.getPreference(ballotIndex)] += ballot.getNumberOfTotalCandidates() - ballotIndex
         averageScore = mean(scores.values())
         if set(scores.values()) == {averageScore}: return set(scores.keys())
         for candidate in scores:
@@ -273,11 +296,10 @@ votingSystemsAndNames = {"Plurality": pluralityVote, "Antiplurality": antiplural
 
 ##### EXECUTION AREA
 voteSet = generateRandomVoteSet(generateGenericCandidates(4), 10)
-
 chairParadox = [Ballot(["A","B","C"]),Ballot(["B","C","A"]),Ballot(["C","A","B"])]
-#print(voteSet)
+print(voteSet)
 #printAllVotingSystemResults(voteSet)
 #print(sequentialPairwiseVote(voteSet))
 #print(socialWellfareFunction(voteSet,condorcetVote))
 #generateCondorcetWinnerHeatmap(7,30)
-generateVotingSystemWinnerHeatmap(generateManyElections(generateGenericCandidates(5), 100, 10000), votingSystemsAndNames)
+#generateVotingSystemWinnerHeatmap(generateManyElections(generateGenericCandidates(30), 1000, 10000), votingSystemsAndNames)
