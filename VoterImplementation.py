@@ -91,6 +91,9 @@ def generateGenericCandidates(numberOfCandidates):
 def generateRandomVoteSet(candidateSet, numberOfVoters, candidatesToSkip = 0):
     return [Ballot(returnShuffledCopyOfList(candidateSet)[:len(candidateSet)-candidatesToSkip], candidateSet) for i in range(numberOfVoters)]
 
+def generateRandomVoteSetWithMissingCandidates(candidateSet, numberOfVoters):
+    return [Ballot(returnShuffledCopyOfList(candidateSet)[:random.randint(1, len(candidateSet))], candidateSet) for i in range(numberOfVoters)]
+
 def generateManyElections(candidateSet, numberOfVoters, electionCount):
     return [generateRandomVoteSet(candidateSet, numberOfVoters) for i in range(electionCount)]
 
@@ -121,15 +124,16 @@ def generateMultiVotingSystemComparisonHeatmap(listOfVoteSets, votingSystemsAndN
                   [[name]+[scores[name][comparedName]/countOfVoteSets for comparedName in allNames] for name in allNames]
     printForSpreadsheet(listOfLines)
 
-def generateTwoVotingSystemComparisonHeatmapOnFakeData(system1, system2, maxCandidates, maxVoters, minCandidates = 2, minVoters = 10, iterationCount = 1000):
-    listOfLines = [["Number of Voters"] + list(range(minVoters, maxVoters + 1, 10))]
+def generateTwoVotingSystemComparisonHeatmapOnFakeData(system1, system2, maxCandidates, maxVoters,
+                                                       minCandidates = 2, minVoters = 10, iterationCount = 1000):
+    listOfLines = [["Initial Election Conditions"] + list(range(minVoters, maxVoters + 1, 10))]
     for candidateCount in range(minCandidates, maxCandidates + 1):
         line = [candidateCount]
         for voterCount in range(minVoters, maxVoters + 1, 10):
             winnersFound = 0
             for i in range(iterationCount):
-                if condorcetVote(generateRandomVoteSet(generateGenericCandidates(candidateCount), voterCount)):
-                    winnersFound += 1
+                voteSet = generateRandomVoteSetWithMissingCandidates(generateGenericCandidates(candidateCount), voterCount)
+                if system1(voteSet).issubset(system2(voteSet)): winnersFound += 1
             line.append(winnersFound / iterationCount)
         listOfLines.append(line)
     printForSpreadsheet(listOfLines)
@@ -334,12 +338,13 @@ votingSystemsAndNames = {"Plurality": pluralityVote, "Antiplurality": antiplural
 voteSet = generateRandomVoteSet(generateGenericCandidates(4), 10, 2)
 #voteSet = grabBallots()
 chairParadox = [Ballot(["A","B","C"]),Ballot(["B","C","A"]),Ballot(["C","A","B"])]
-for c in range(2,10):
+generateTwoVotingSystemComparisonHeatmapOnFakeData(pluralityVote, antipluralityVote, 10, 100)
+"""for c in range(2,10):
     for v in range (5, 20):
-        for elim in range (c-1):
+        for elim in range (c):
             voteSet = generateRandomVoteSet(generateGenericCandidates(c), v, elim)
             print(voteSet)
-            printVotingSystemResults(voteSet, votingSystemsAndNames)
+            printVotingSystemResults(voteSet, votingSystemsAndNames)"""
 #print(socialWellfareFunction(voteSet,condorcetVote))
 #generateCondorcetWinnerHeatmap(7,30)
 #generateVotingSystemWinnerHeatmap(generateManyElections(generateGenericCandidates(30), 1000, 10000), votingSystemsAndNames)
