@@ -67,6 +67,19 @@ def grabBallots():
             elections[electionNumber].append(Ballot([str(candidate) for candidate in line[1:]], range(int(maxCandidate))))
         print(elections[electionNumber])
     return elections
+def grabSomeBallots():
+    elections = []
+    for electionNumber in range(5):
+        df = pd.read_excel("all_elections.xlsx", sheet_name=electionNumber)
+        ballots = df.values.tolist()
+        elections.append([])
+        for lineNum, line in enumerate(ballots):
+            if lineNum == 0:
+                maxCandidate = line[1]
+                continue
+            elections[electionNumber].append(Ballot([str(candidate) for candidate in line[1:]], range(int(maxCandidate))))
+        print(elections[electionNumber])
+    return elections
 
 ##### HELPER FUNCTIONS
 def returnShuffledCopyOfList(l):
