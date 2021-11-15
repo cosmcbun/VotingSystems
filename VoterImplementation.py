@@ -53,13 +53,15 @@ class Ballot:
 def grabBallots():
     elections = []
     for electionNumber in range(87):
-        df = pd.read_excel("all_elections", sheet_name=electionNumber)
+        df = pd.read_excel("all_elections.xlsx", sheet_name=electionNumber)
         ballots = df.values.tolist()
+        elections.append([])
         for lineNum, line in enumerate(ballots):
             if lineNum == 0:
-                maxCandidate = line[0]
+                maxCandidate = line[1]
                 continue
-            elections[electionNumber].append(Ballot(line, range(maxCandidate)))
+            elections[electionNumber].append(Ballot([str(candidate) for candidate in line[1:]], range(int(maxCandidate))))
+        print(elections[electionNumber])
     return elections
 
 ##### HELPER FUNCTIONS
