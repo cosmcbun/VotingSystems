@@ -39,7 +39,7 @@ class Ballot:
         else:
             self.candidatesNotVotedFor.remove(candidate)
         self.fullCandidatesList.remove(candidate)
-    def getSetOfCandidatesNotVotedFor(self):
+    def getSetOfCandidatesNotVotedFor(self):     
         return self.candidatesNotVotedFor
     def __repr__(self):
         return "["+" ".join(self.preferences)+"]"
@@ -65,7 +65,7 @@ def grabBallots():
                 continue
             splitLine = decodedLine.split(" ")
             ballotList = [int(candidate) - 1 for candidate in splitLine[1:-1]]
-            elections[listValue-1].append(Ballot(ballotList))
+            elections[listValue-1].append(Ballot(ballotList, range(maxCandidate)))
     return(elections)
 
 ##### HELPER FUNCTIONS
@@ -165,8 +165,8 @@ def pluralityVote(voteSet):
 def antipluralityVote(voteSet):
     scores = {candidate:0 for candidate in getListOfCandidatesInElection(voteSet)}
     for ballot in voteSet:
-        if ballot.getUnvoted():
-            for candidate in ballot.getUnvoted():
+        if ballot.getSetOfCandidatesNotVotedFor():
+            for candidate in ballot.getSetOfCandidatesNotVotedFor():
                 scores[candidate] += 1
         else:
             scores[ballot.getPreference(ballot.getBallotLength()-1)] += 1
@@ -182,8 +182,7 @@ def hareVoteHelper(voteSet):
     else:
         scores = {candidate: 0 for candidate in getListOfCandidatesInElection(voteSet)}
         for ballot in voteSet:
-            if ballot:
-                scores[ballot.getPreference(0)] += 1
+            scores[ballot.getPreference(0)] += 1
 
         highestScore = max(scores.values()) #A little optimization: if a candidate has plurality, they win autimatically
         if highestScore > len(voteSet)/2:
@@ -206,8 +205,8 @@ def coombsVoteHelper(voteSet):
     else:
         scores = {candidate: 0 for candidate in getListOfCandidatesInElection(voteSet)}
         for ballot in voteSet:
-            if ballot.getUnvoted():
-                for candidate in ballot.getUnvoted():
+            if ballot.getSetOfCandidatesNotVotedFor():
+                for candidate in ballot.getSetOfCandidatesNotVotedFor():
                     scores[candidate] += 1
             else:
                 scores[ballot.getPreference(ballot.getNumberOfTotalCandidates() - 1)] += 1
@@ -235,7 +234,7 @@ def nansonVoteHelper(voteSet):
     else:
         scores = {candidate: 0 for candidate in getListOfCandidatesInElection(voteSet)}
         for ballot in voteSet:
-            for ballotIndex in range(ballot.getNumberOfTotalCandidates()):
+            for ballotIndex in range(ballot.getBallotLength()):
                 scores[ballot.getPreference(ballotIndex)] += ballot.getNumberOfTotalCandidates() - ballotIndex
         averageScore = mean(scores.values())
         if set(scores.values()) == {averageScore}: return set(scores.keys())
