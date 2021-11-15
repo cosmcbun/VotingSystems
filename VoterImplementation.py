@@ -156,8 +156,8 @@ def antipluralityVote(voteSet):
     scores = {candidate:0 for candidate in getListOfCandidatesInElection(voteSet)}
     for ballot in voteSet:
         if ballot.getUnvoted():
-            for vote in ballot.getUnvoted():
-                scores[vote] += 1
+            for candidate in ballot.getUnvoted():
+                scores[candidate] += 1
         else:
             scores[ballot.getPreference(ballot.getBallotLength()-1)] += 1
     lowestScore = min(scores.values())
@@ -196,7 +196,11 @@ def coombsVoteHelper(voteSet):
     else:
         scores = {candidate: 0 for candidate in getListOfCandidatesInElection(voteSet)}
         for ballot in voteSet:
-            scores[ballot.getPreference(ballot.getNumberOfTotalCandidates() - 1)] += 1
+            if ballot.getUnvoted():
+                for candidate in ballot.getUnvoted():
+                    scores[candidate] += 1
+            else:
+                scores[ballot.getPreference(ballot.getNumberOfTotalCandidates() - 1)] += 1
         highestScore = max(scores.values())
         for candidate in scores:
             if scores[candidate] == highestScore:
@@ -208,7 +212,7 @@ def bordaCountVote(voteSet):
     scores = {candidate:0 for candidate in getListOfCandidatesInElection(voteSet)}
     for ballot in voteSet:
         for ballotIndex in range(ballot.getBallotLength()):
-            scores[ballot.getPreference(ballotIndex)] += getNumberOfTotalCandidates() - ballotIndex
+            scores[ballot.getPreference(ballotIndex)] += ballot.getNumberOfTotalCandiates() - ballotIndex
     highestScore = max(scores.values())
     return {candidate for candidate in scores if scores[candidate] == highestScore}
 
