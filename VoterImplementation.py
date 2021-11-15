@@ -52,25 +52,14 @@ class Ballot:
 ##### DATAGRABBER FUNCTIONS
 def grabBallots():
     elections = []
-    for electionNumber in chain(range(1, 36), range(48, 100)):
-        url = "https://rangevoting.org/TiData/A" + str(electionNumber) + ".HIL"
-        print(url)
-        file = urllib.request.urlopen(url)
-        fileLen = len(urllib.request.urlopen(url).readlines())
-        elections.append([])
-        listValue = electionNumber
-        if electionNumber > 35:
-            listValue = electionNumber - 12
-        for lineNum, line in enumerate(file):
-            decodedLine = line.decode("utf-8")
+    for electionNumber in range(87):
+        df = pd.read_excel("all_elections", sheet_name=electionNumber)
+        ballots = df.values.tolist()
+        for lineNum, line in enumerate(ballots):
             if lineNum == 0:
-                maxCandidate = decodedLine.split(" ")[1]
+                maxCandidate = line[0]
                 continue
-            elif lineNum == fileLen - 1 or lineNum == fileLen - 2 or lineNum == fileLen - 3:
-                continue
-            splitLine = decodedLine.split(" ")
-            ballotList = [int(candidate) - 1 for candidate in splitLine[1:-1]]
-            elections[listValue-1].append(Ballot(ballotList, range(maxCandidate)))
+            elections[electionNumber].append(Ballot(line, range(maxCandidate)))
     return elections
 
 ##### HELPER FUNCTIONS
