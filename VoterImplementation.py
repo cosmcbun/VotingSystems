@@ -25,10 +25,20 @@ class Ballot:
     def getNumberOfTotalCandidates(self):
         return len(self.fullCandidatesList)
     def getPreferredCandidate(self, candidateA, candidateB):
-        if self.preferences.index(candidateA) < self.preferences.index(candidateB): return candidateA
-        else: return candidateB
+        if candidateA in self.preferences:
+            if candidateB in self.preferences:
+                if self.preferences.index(candidateA) < self.preferences.index(candidateB): return candidateA
+                else: return candidateB
+            else: return candidateA
+        else:
+            if candidateB in self.preferences: return candidateB
+            else: return None
     def removeCandidate(self, candidate):
-        self.preferences.remove(candidate)
+        if candidate in self.preferences:
+            self.preferences.remove(candidate)
+        else:
+            self.candidatesNotVotedFor.remove(candidate)
+        self.fullCandidatesList.remove(candidate)
     def getSetOfCandidatesNotVotedFor(self):
         return self.candidatesNotVotedFor
     def __repr__(self):
