@@ -24,6 +24,8 @@ class Ballot:
         else: return None
     def getNumberOfTotalCandidates(self):
         return len(self.fullCandidatesList)
+    def getBallotLength(self):
+        return len(self.preferences)
     def getPreferredCandidate(self, candidateA, candidateB):
         if candidateA in self.preferences:
             if candidateB in self.preferences:
@@ -69,7 +71,7 @@ def grabBallots():
             splitLine = decodedLine.split(" ")
             ballotList = [int(candidate) - 1 for candidate in splitLine[1:-1]]
             elections[listValue-1].append(Ballot(ballotList, range(maxCandidate)))
-    return(elections)
+    return elections
 
 ##### HELPER FUNCTIONS
 def returnShuffledCopyOfList(l):
@@ -154,7 +156,7 @@ def removeCandidateFromElection(voteSet, candidate):
     return [ballot for ballot in voteSet if not ballot.isBallotEmpty()]
 
 def printVotingSystemResults(voteSet, votingSystemsAndNames):
-    for votingSystem in votingSystemsAndNames: print(votingSystem+":", votingSystem(voteSet))
+    for votingSystem in votingSystemsAndNames: print(votingSystem+":", votingSystemsAndNames[votingSystem](voteSet))
 
 ##### VOTING SYSTEMS
 def pluralityVote(voteSet):
@@ -223,7 +225,7 @@ def bordaCountVote(voteSet):
     scores = {candidate:0 for candidate in getListOfCandidatesInElection(voteSet)}
     for ballot in voteSet:
         for ballotIndex in range(ballot.getNumberOfTotalCandidates()):
-            scores[ballot.getPreference(ballotIndex)] += ballot.getNumberOfTotalCandiates() - ballotIndex
+            scores[ballot.getPreference(ballotIndex)] += ballot.getNumberOfTotalCandidates() - ballotIndex
     highestScore = max(scores.values())
     return {candidate for candidate in scores if scores[candidate] == highestScore}
 
@@ -311,10 +313,11 @@ votingSystemsAndNames = {"Plurality": pluralityVote, "Antiplurality": antiplural
                          "Black": blackVote, "Sequential Pairwise": sequentialPairwiseVote, "Dictator": dictatorshipVote}
 
 ##### EXECUTION AREA
-voteSet = generateRandomVoteSet(generateGenericCandidates(4), 10)
+voteSet = generateRandomVoteSet(generateGenericCandidates(10), 100)
+voteSet = grabBallots()
 chairParadox = [Ballot(["A","B","C"]),Ballot(["B","C","A"]),Ballot(["C","A","B"])]
-print(voteSet)
-#printAllVotingSystemResults(voteSet)
+#print(voteSet)
+printVotingSystemResults(voteSet, votingSystemsAndNames)
 #print(sequentialPairwiseVote(voteSet))
 #print(socialWellfareFunction(voteSet,condorcetVote))
 #generateCondorcetWinnerHeatmap(7,30)
