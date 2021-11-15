@@ -41,6 +41,9 @@ class Ballot:
         self.fullCandidatesList.remove(candidate)
     def getSetOfCandidatesNotVotedFor(self):     
         return self.candidatesNotVotedFor
+    def isBallotEmpty(self):
+        if self.preferences: return False
+        else: return True
     def __repr__(self):
         return "["+" ".join(self.preferences)+"]"
 
@@ -131,17 +134,16 @@ def printForSpreadsheet(listOfLines):
         print()
 
 def compareTwoCandidates(voteSet, candidateA, candidateB):
-    countForMajority = math.floor(len(voteSet)/2+1)
     candidateAWins, candidateBWins = 0, 0
     for ballot in voteSet:
         winner = ballot.getPreferredCandidate(candidateA, candidateB)
         if winner == candidateA:
             candidateAWins+=1
-            if candidateAWins >= countForMajority: return {candidateA}
         elif winner == candidateB:
             candidateBWins+=1
-            if candidateBWins >= countForMajority: return {candidateB}
-    return {candidateA, candidateB}
+    if candidateAWins > candidateBWins: return {candidateA}
+    elif candidateAWins < candidateBWins: return {candidateB}
+    elif candidateAWins == candidateBWins: return {candidateA, candidateB}
 
 def getListOfCandidatesInElection(voteSet):
     return [voteSet[0].getPreference(i) for i in range(voteSet[0].getNumberOfTotalCandidates())]
@@ -149,7 +151,7 @@ def getListOfCandidatesInElection(voteSet):
 def removeCandidateFromElection(voteSet, candidate):
     for ballot in voteSet:
         ballot.removeCandidate(candidate)
-    return voteSet
+    return [ballot for ballot in voteSet if not ballot.isBallotEmpty()]
 
 def printVotingSystemResults(voteSet, votingSystemsAndNames):
     for votingSystem in votingSystemsAndNames: print(votingSystem+":", votingSystem(voteSet))
@@ -248,6 +250,7 @@ def condorcetVote(voteSet):
     candidatesToBeat = {candidate:eligibleWinners[:] for candidate in eligibleWinners}
     for candidate in candidatesToBeat:
         candidatesToBeat[candidate].remove(candidate)
+
     while eligibleWinners and [] not in candidatesToBeat.values():
         firstCompetitor = eligibleWinners[0]
         secondCompetitor = candidatesToBeat[firstCompetitor][0]
