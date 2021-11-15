@@ -10,8 +10,8 @@ from statistics import mean
 class Ballot:
     def __init__(self, preferenceOrdering, fullCandidatesList = None):
         self.preferences = preferenceOrdering
-        if type(fullCandidatesList) == list:
-            self.fullCandidatesList = fullCandidatesList
+        if fullCandidatesList is not None:
+            self.fullCandidatesList = list(fullCandidatesList)
             self.candidatesNotVotedFor = set(fullCandidatesList).difference(set(preferenceOrdering))
         else:
             self.fullCandidatesList = preferenceOrdering
