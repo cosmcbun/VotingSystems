@@ -41,8 +41,12 @@ class Ballot:
         else:
             self.candidatesNotVotedFor.remove(candidate)
         self.fullCandidatesList.remove(candidate)
-    def getSetOfCandidatesNotVotedFor(self):     
+    def getSetOfCandidatesNotVotedFor(self):
         return self.candidatesNotVotedFor
+    def getFullCandidatesList(self):
+        return self.fullCandidatesList
+    def getBallot(self):
+        return self.preferences
     def isBallotEmpty(self):
         if self.preferences: return False
         else: return True
@@ -72,8 +76,8 @@ def generateGenericCandidates(numberOfCandidates):
     return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
             'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'][:numberOfCandidates]
 
-def generateRandomVoteSet(candidateSet, numberOfVoters):
-    return [Ballot(returnShuffledCopyOfList(candidateSet)) for i in range(numberOfVoters)]
+def generateRandomVoteSet(candidateSet, numberOfVoters, candidatesToSkip = 0):
+    return [Ballot(returnShuffledCopyOfList(candidateSet)[:len(candidateSet)-candidatesToSkip], candidateSet) for i in range(numberOfVoters)]
 
 def generateManyElections(candidateSet, numberOfVoters, electionCount):
     return [generateRandomVoteSet(candidateSet, numberOfVoters) for i in range(electionCount)]
@@ -137,7 +141,7 @@ def compareTwoCandidates(voteSet, candidateA, candidateB):
     elif candidateAWins == candidateBWins: return {candidateA, candidateB}
 
 def getListOfCandidatesInElection(voteSet):
-    return [voteSet[0].getPreference(i) for i in range(voteSet[0].getNumberOfTotalCandidates())]
+    return voteSet[0].getFullCandidatesList()
 
 def removeCandidateFromElection(voteSet, candidate):
     for ballot in voteSet:
@@ -211,10 +215,12 @@ def coombsVoteHelper(voteSet):
         else: return coombsVoteHelper(voteSet)
 
 def bordaCountVote(voteSet):
-    scores = {candidate:0 for candidate in getListOfCandidatesInElection(voteSet)}
+    scores = {candidate:0 for candidate in voteSet[0].getBallot()}
     for ballot in voteSet:
-        for ballotIndex in range(ballot.getNumberOfTotalCandidates()):
+        for ballotIndex in range(ballot.getBallotLength()):
             scores[ballot.getPreference(ballotIndex)] += ballot.getNumberOfTotalCandidates() - ballotIndex
+        for candidate in ballot.getSetOfCandidatesNotVotedFor():
+            scores[candidate]+=1
     highestScore = max(scores.values())
     return {candidate for candidate in scores if scores[candidate] == highestScore}
 
@@ -303,7 +309,7 @@ votingSystemsAndNames = {"Plurality": pluralityVote, "Antiplurality": antiplural
 
 ##### EXECUTION AREA
 voteSet = generateRandomVoteSet(generateGenericCandidates(10), 100)
-voteSet = grabBallots()
+#voteSet = grabBallots()
 chairParadox = [Ballot(["A","B","C"]),Ballot(["B","C","A"]),Ballot(["C","A","B"])]
 #print(voteSet)
 printVotingSystemResults(voteSet, votingSystemsAndNames)
