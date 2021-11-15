@@ -44,7 +44,7 @@ def grabBallots():
             elif lineNum == fileLen - 1 or lineNum == fileLen - 2 or lineNum == fileLen - 3:
                 continue
             splitLine = decodedLine.split(" ")
-            ballotList = [int(candidate) for candidate in splitLine[1:-1]]
+            ballotList = [int(candidate) - 1 for candidate in splitLine[1:-1]]
             elections[listValue-1].append(Ballot(ballotList))
     return(elections)
 
@@ -132,7 +132,11 @@ def pluralityVote(voteSet):
 def antipluralityVote(voteSet):
     scores = {candidate:0 for candidate in getListOfCandidatesInElection(voteSet)}
     for ballot in voteSet:
-        scores[ballot.getPreference(ballot.getBallotLength()-1)] += 1
+        if ballot.getUnvoted():
+            for vote in ballot.getUnvoted():
+                scores[vote] += 1
+        else:
+            scores[ballot.getPreference(ballot.getBallotLength()-1)] += 1
     lowestScore = min(scores.values())
     return {candidate for candidate in scores if scores[candidate] == lowestScore}
 
@@ -145,7 +149,8 @@ def hareVoteHelper(voteSet):
     else:
         scores = {candidate: 0 for candidate in getListOfCandidatesInElection(voteSet)}
         for ballot in voteSet:
-            scores[ballot.getPreference(0)] += 1
+            if ballot:
+                scores[ballot.getPreference(0)] += 1
 
         highestScore = max(scores.values()) #A little optimization: if a candidate has plurality, they win autimatically
         if highestScore > len(voteSet)/2:
@@ -180,7 +185,7 @@ def bordaCountVote(voteSet):
     scores = {candidate:0 for candidate in getListOfCandidatesInElection(voteSet)}
     for ballot in voteSet:
         for ballotIndex in range(ballot.getBallotLength()):
-            scores[ballot.getPreference(ballotIndex)] += ballot.getBallotLength() - ballotIndex
+            scores[ballot.getPreference(ballotIndex)] += getNumberOfTotalCandidates() - ballotIndex
     highestScore = max(scores.values())
     return {candidate for candidate in scores if scores[candidate] == highestScore}
 
