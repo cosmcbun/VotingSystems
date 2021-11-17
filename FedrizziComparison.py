@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 import matplotlib.pyplot as plt
-from sklearn.metrics import r2_score
 
 systems = ["Plurality", "Antiplurality", "Hare", "Coombs", "Borda", "Nanson", "Condorcet", "Black", "Dictator"]
 fedrizziPointsArtificialX = []
@@ -28,12 +27,12 @@ fedrizziPointsRealY = np.asarray(fedrizziPointsRealY)
 bArtificial, mArtificial = polyfit(fedrizziPointsArtificialX, fedrizziPointsArtificialY, 1)
 bReal, mReal = polyfit(fedrizziPointsRealX, fedrizziPointsRealY, 1)
 
-coefficient_of_correlation_real = np.corrcoef(fedrizziPointsRealX, fedrizziPointsRealY)
-coefficient_of_correlation_artificial = np.corrcoef(fedrizziPointsArtificialX, fedrizziPointsArtificialY)
+rsquared_real = (np.corrcoef(fedrizziPointsRealX, fedrizziPointsRealY)[0,1])**2
+rsquared_artificial = (np.corrcoef(fedrizziPointsArtificialX, fedrizziPointsArtificialY))[0,1]**2
 
 
-print("Real correlation coefficient: " + str(coefficient_of_correlation_real))
-print("Artificial correlation coefficient : " + str(coefficient_of_correlation_artificial))
+print("Real R^2: " + str(rsquared_real))
+print("Artificial R^2: " + str(rsquared_artificial))
 
 
 
@@ -43,7 +42,7 @@ ax1.plot(fedrizziPointsRealX, fedrizziPointsRealY, '.')
 ax1.plot(fedrizziPointsRealX, bReal + mReal*fedrizziPointsRealX, '-')
 ax2.plot(fedrizziPointsArtificialX, fedrizziPointsArtificialY, '.')
 ax2.plot(fedrizziPointsArtificialX, bArtificial + mArtificial*fedrizziPointsArtificialX, '-')
-plt.xlabel("Fedrizzi Score")
-plt.xlabel("Data Score")
+# plt.xlabel("Fedrizzi Score")
+# plt.ylabel("Data Score")
 
 plt.savefig('fedrizzi_comparison.png')

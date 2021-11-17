@@ -110,6 +110,7 @@ def generateCondorcetWinnerHeatmap(maxCandidates, maxVoters, minCandidates = 2, 
         listOfLines.append(line)
     printForSpreadsheet(listOfLines)
 
+
 def generateMultiVotingSystemComparisonHeatmap(listOfVoteSets, votingSystemsAndNames):
     allNames = list(votingSystemsAndNames.keys())
     scores = {name: {comparedName:0 for comparedName in allNames} for name in allNames}
@@ -337,5 +338,5 @@ votingSystemsAndNames = {"Plurality": pluralityVote, "Antiplurality": antiplural
 ##### EXECUTION AREA
 
 #print(socialWellfareFunction(voteSet,condorcetVote))
-generateCondorcetWinnerHeatmap(20,100, minCandidates=2, minVoters=80, iterationCount=100000)
+# generateCondorcetWinnerHeatmap(20,100, minCandidates=2, minVoters=80, iterationCount=100000)
 #generateVotingSystemWinnerHeatmap(generateManyElections(generateGenericCandidates(30), 1000, 10000), votingSystemsAndNames)
