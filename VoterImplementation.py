@@ -67,9 +67,9 @@ def grabBallots():
             elections[electionNumber].append(Ballot([str(candidate) for candidate in line[1:]], range(int(maxCandidate))))
         print(elections[electionNumber])
     return elections
-def grabSomeBallots():
+def grabSomeBallots(numBallots=5):
     elections = []
-    for electionNumber in range(5):
+    for electionNumber in range(numBallots):
         df = pd.read_excel("all_elections.xlsx", sheet_name=electionNumber)
         ballots = df.values.tolist()
         elections.append([])
@@ -323,12 +323,12 @@ votingSystemsAndNames = {"Plurality": pluralityVote, "Antiplurality": antiplural
                          "Black": blackVote, "Sequential Pairwise": sequentialPairwiseVote, "Dictator": dictatorshipVote}
 
 ##### EXECUTION AREA
-voteSet = generateRandomVoteSet(generateGenericCandidates(10), 100)
+# voteSet = generateRandomVoteSet(generateGenericCandidates(10), 100)
 #voteSet = grabBallots()
-chairParadox = [Ballot(["A","B","C"]),Ballot(["B","C","A"]),Ballot(["C","A","B"])]
+# chairParadox = [Ballot(["A","B","C"]),Ballot(["B","C","A"]),Ballot(["C","A","B"])]
 #print(voteSet)
-printVotingSystemResults(voteSet, votingSystemsAndNames)
+# printVotingSystemResults(voteSet, votingSystemsAndNames)
 #print(sequentialPairwiseVote(voteSet))
 #print(socialWellfareFunction(voteSet,condorcetVote))
-#generateCondorcetWinnerHeatmap(7,30)
+generateCondorcetWinnerHeatmap(20,100, minCandidates=2, minVoters=80, iterationCount=100000)
 #generateVotingSystemWinnerHeatmap(generateManyElections(generateGenericCandidates(30), 1000, 10000), votingSystemsAndNames)
