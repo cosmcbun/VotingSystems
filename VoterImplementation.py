@@ -48,12 +48,12 @@ class Ballot:
     def getBallot(self):
         return self.preferences
     def __repr__(self):
-        return "["+" ".join(self.preferences)+"]"
+        return "["+" ".join(self.preferences)+"]"#+"".join(self.fullCandidatesList)
 
 ##### DATAGRABBER FUNCTIONS
-def grabBallots():
+def grabElections(ballotCount = 87):
     elections = []
-    for electionNumber in range(87):
+    for electionNumber in range(ballotCount):
         df = pd.read_excel("all_elections.xlsx", sheet_name=electionNumber)
         ballots = df.values.tolist()
         elections.append([])
@@ -61,21 +61,7 @@ def grabBallots():
             if lineNum == 0:
                 maxCandidate = line[1]
                 continue
-            elections[electionNumber].append(Ballot([str(candidate) for candidate in line[1:]], range(int(maxCandidate))))
-        print(elections[electionNumber])
-    return elections
-def grabSomeBallots():
-    elections = []
-    for electionNumber in range(5):
-        df = pd.read_excel("all_elections.xlsx", sheet_name=electionNumber)
-        ballots = df.values.tolist()
-        elections.append([])
-        for lineNum, line in enumerate(ballots):
-            if lineNum == 0:
-                maxCandidate = line[1]
-                continue
-            elections[electionNumber].append(Ballot([str(candidate) for candidate in line[1:]], range(int(maxCandidate))))
-        print(elections[electionNumber])
+            elections[electionNumber].append(Ballot([str(int(candidate)) for candidate in line[1:] if not pd.isna(candidate)], [str(i) for i in range(int(maxCandidate))]))
     return elections
 
 ##### HELPER FUNCTIONS
@@ -123,6 +109,15 @@ def generateMultiVotingSystemComparisonHeatmap(listOfVoteSets, votingSystemsAndN
     listOfLines = [["How often does the left select a subset of the top?"]+allNames] + \
                   [[name]+[scores[name][comparedName]/countOfVoteSets for comparedName in allNames] for name in allNames]
     printForSpreadsheet(listOfLines)
+
+def votingSystemSimilarityValue(listOfVoteSets, systemA, systemB):
+    similarity = 0
+    for voteSet in listOfVoteSets:
+        winnerA = systemA(voteSet)
+        winnerB = systemB(voteSet)
+        if winnerA.issubset(winnerB): similarity += 1
+        if winnerB.issubset(winnerA): similarity += 1
+    return similarity / (2*len(listOfVoteSets))
 
 def generateTwoVotingSystemComparisonHeatmapOnFakeData(system1, system2, maxCandidates, maxVoters,
                                                        minCandidates = 2, minVoters = 10, iterationCount = 1000):
@@ -334,11 +329,24 @@ votingSystemsAndNames = {"Plurality": pluralityVote, "Antiplurality": antiplural
                          "Coombs": coombsVote, "Borda": bordaCountVote, "Nanson": nansonVote, "Condorcet": condorcetVote,
                          "Black": blackVote, "Sequential Pairwise": sequentialPairwiseVote, "Dictator": dictatorshipVote}
 
+realDataVoterDistribution, realDataCandidateDistribution = [380, 371, 981, 43, 750, 280, 79, 78, 3419, 83, 963, 76, 104, 73, 77, 129, 867, 976, 860, 2785, 741, 44, 91, 82, 183, 100, 77, 115, 68, 58, 32, 148, 9, 63, 176, 923, 575, 561, 41, 667, 460, 922, 302, 680, 306, 216, 683, 196, 199, 166, 155, 192, 195, 191, 180, 49, 86, 525, 499, 272, 525, 253, 311, 403, 213, 486, 362, 269, 902, 369, 1123, 276, 158, 157, 120, 134, 255, 365, 661, 537, 561, 579, 587, 564, 284, 279, 275], [10, 9, 15, 14, 16, 9, 17, 7, 12, 19, 10, 20, 26, 17, 21, 3, 13, 6, 7, 5, 8, 11, 29, 5, 3, 5, 6, 4, 3, 3, 4, 5, 18, 14, 17, 10, 13, 4, 6, 10, 10, 11, 10, 13, 9, 7, 7, 6, 4, 4, 7, 3, 10, 6, 14, 4, 9, 9, 8, 3, 5, 3, 4, 5, 3, 4, 8, 7, 11, 4, 4, 7, 4, 5, 4, 9, 5, 20, 14, 13, 4, 4, 7, 6, 4, 4, 4]
+
 ##### EXECUTION AREA
 voteSet = generateRandomVoteSet(generateGenericCandidates(4), 10, 2)
-#voteSet = grabBallots()
+voteSet = grabElections(1)[0]
 chairParadox = [Ballot(["A","B","C"]),Ballot(["B","C","A"]),Ballot(["C","A","B"])]
-generateTwoVotingSystemComparisonHeatmapOnFakeData(pluralityVote, antipluralityVote, 10, 100)
+#generateTwoVotingSystemComparisonHeatmapOnFakeData(pluralityVote, antipluralityVote, 10, 100, iterationCount=10)
+#print(voteSet)
+#printVotingSystemResults(voteSet, votingSystemsAndNames)
+#elections = grabElections(1)
+for ballot in voteSet:
+    print(len(ballot.getSetOfCandidatesNotVotedFor()))
+    print(ballot, ballot.getSetOfCandidatesNotVotedFor())
+    print()
+"""for x in votingSystemsAndNames:
+    for y in votingSystemsAndNames:
+        print(x, y, votingSystemSimilarityValue(ballots, votingSystemsAndNames[x], votingSystemsAndNames[y]))"""
+#generateMultiVotingSystemComparisonHeatmap(ballots, votingSystemsAndNames)
 """for c in range(2,10):
     for v in range (5, 20):
         for elim in range (c):
